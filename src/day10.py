@@ -34,15 +34,6 @@ def solve():
 
 	return score_part1, score_part2
 
-def solve_part2():
-	score = 0
-
-	for pos in G:
-		if G[pos] == 0:
-			score += calculate_score(pos, 0, {})
-
-	return score
-
 score_part1, score_part2 = solve()
 
 print(score_part1)
