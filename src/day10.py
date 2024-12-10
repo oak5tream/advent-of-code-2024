@@ -2,8 +2,7 @@ G = {}
 
 for y, line in enumerate(open("data/day10.txt", "r")):
 	for x, c in enumerate(list(line.strip())):
-		if c != '.':
-			G[x + y * 1j] = int(c)
+		G[x + y * 1j] = int(c)
 
 def calculate_score(pos, height, paths):
 	score = 0
@@ -17,6 +16,7 @@ def calculate_score(pos, height, paths):
 	else:
 		for delta in [-1, 1, -1j, 1j]:
 			neighbour = pos + delta
+
 			if neighbour in G:
 				score += calculate_score(neighbour, height + 1, paths)
 
