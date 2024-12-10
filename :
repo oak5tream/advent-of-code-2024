@@ -1,0 +1,44 @@
+G = {}
+X_MAX = 0
+Y_MAX = 0
+
+for y, line in enumerate(open("data/day10_test2.txt", "r")):
+	for x, c in enumerate(list(line.strip())):
+		if c != '.':
+			G[x + y * 1j] = int(c)
+
+		X_MAX = max(X_MAX, x + 1)
+	Y_MAX = max(Y_MAX, y + 1)
+
+def calculate_score(pos, height, paths):
+	if height == 9:
+		paths[pos] = True
+		print("REACHED 9")
+	elif G[pos] != height + 1:
+		return 0
+
+	for delta in [-1, 1, -1j, 1j]:
+		next = pos + delta
+		if next in G:
+#			print("Checking", pos, pos + delta)
+			calculate_score(next, height + 1, paths)
+#		else:
+#			print("Not in grid", pos, pos + delta)
+
+def solve_part1():
+	score = 0
+
+	for pos in G:
+		if G[pos] == 0:
+			paths = {}
+			calculate_score(pos, -1, paths)
+			score += len(paths)
+			print(paths)
+
+	return score
+
+def solve_part2():
+	return 0
+
+print(solve_part1())
+#print(solve_part2())
