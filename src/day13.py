@@ -9,20 +9,14 @@ for i, line in enumerate(open("data/day13.txt", "r")):
 		m = re.search("X\+([0-9]+).*Y\+([0-9]+)", line)
 		if m:
 			claw["a"] = {"x": int(m.group(1)), "y": int(m.group(2))}
-		else:
-			print("Error parsing button A")
 	elif i % 4 == 1:
 		m = re.search("X\+([0-9]+).*Y\+([0-9]+)", line)
 		if m:
 			claw["b"] = {"x": int(m.group(1)), "y": int(m.group(2))}
-		else:
-			print("Error parsing button B")
 	elif i % 4 == 2:
 		m = re.search("X=([0-9]+).*Y=([0-9]+)", line)
 		if m:
 			claw["price"] = {"x": int(m.group(1)), "y": int(m.group(2))}
-		else:
-			print("Error parsing price")
 
 		L.append(claw)
 		claw = {}
