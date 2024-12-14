@@ -1,5 +1,3 @@
-import pprint
-
 H = {}
 X_MAX = 0
 Y_MAX = 0

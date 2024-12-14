@@ -19,8 +19,7 @@ def solve_part1():
 	result = 0
 
 	for l in G:
-		if is_safe(list(map(int, l))):
-			result += 1
+		result += 1 if is_safe(list(map(int, l))) else 0
 
 	return result
 
