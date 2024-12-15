@@ -61,7 +61,6 @@ def print_sides(sides, c):
 
 		print(output)
 	
-
 def calculate_sides(plants, region):
 	U, R, D, L = 0, 1, 2, 3
 	sides = [{}, {}, {}, {}]
