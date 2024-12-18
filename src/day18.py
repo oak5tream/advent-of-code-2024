@@ -21,7 +21,7 @@ def print_grid(grid):
 
 		print(output)
 
-def get_num_steps(grid, start, end): # Bad name. Find end?
+def get_num_steps(grid, start, end):
 	queue = []
 	heap_id = 1
 
@@ -42,7 +42,7 @@ def get_num_steps(grid, start, end): # Bad name. Find end?
 		visited[pos] = steps
 
 		for dir in [-1j, 1 + 0 * 1j, 1j, -1 + 0 * 1j]:
-			if pos + dir in grid and grid[pos + dir] == '.': # LAST ONE JUST FOR TESTING SPEED
+			if pos + dir in grid and grid[pos + dir] == '.':
 				heap_id += 1
 				heappush(queue, (heap_id, pos + dir, steps + 1))
 
