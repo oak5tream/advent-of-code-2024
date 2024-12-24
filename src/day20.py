@@ -103,6 +103,12 @@ def solve():
 	
 	return r0, r1
 
-part1, part2 = solve()
-print(part1)
-print(part2)
+#part1, part2 = solve()
+#print(part1)
+#print(part2)
+
+a = [0, 1, 2]
+
+for x in a:
+	for y in a:
+		print(a[x], a[y])
