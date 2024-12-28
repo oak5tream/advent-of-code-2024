@@ -1,7 +1,8 @@
-import functools
-from heapq import heappop, heappush
+# FIXME - THIS ONE IS A MESS WITH MULTIPLE REWRITES. CLEAN IT UP SOME DAYS!
 
-L = [list(c.strip()) for c in open("data/day21_test.txt", "r")]
+import itertools
+
+L = [list(c.strip()) for c in open("data/day21.txt", "r")]
 
 KP_NUM = dict([
 	(0 + 0 * 1j, '7'), (1 + 0 * 1j, '8'), (2 + 0 * 1j, '9'),
@@ -21,6 +22,8 @@ KP_DIR = dict([
 	])
 
 KP_DIR_VAL = {}
+
+DIRECTIONS = {'^': 0 - 1 * 1j, '>': 1 + 0 * 1j, 'v': 0 + 1 * 1j, '<': -1 + 0 * 1j}
 
 KP_DIR_MAP = {
 	('A', '0'): "<",
@@ -179,49 +182,6 @@ def print_keypads():
 
 		print(output)
 
-
-#print_keypads()
-
-def get_steps(grid, start, end):
-	queue = []
-	heap_id = 1
-
-	heappush(queue, (0, start, 0, []))
-	min_steps = 1000000000
-	visited = {}
-	path = []
-
-	while queue:
-		(_, pos, steps, path) = heappop(queue)
-
-		if pos == end:
-			min_steps = min(min_steps, steps)
-			visited[pos] = min_steps
-			return min_steps, path
-
-		if pos in visited and visited[pos] <= steps:
-			continue
-
-		visited[pos] = steps
-
-		for step in [-1j, 1 + 0 * 1j, 1j, -1 + 0 * 1j]:
-			if pos + step in grid:
-				heap_id += 1
-				heappush(queue, (heap_id, pos + step, steps + 1, path + [pos + step]))
-
-
-def calculate_steps(coords):
-	result = {}
-
-	for k0, v0 in coords.items():
-		for k1, v1 in coords.items():
-			if k0 == k1:
-				continue
-
-			result[(v0, v1)] = get_steps(coords, k0, k1)
-
-	return result
-
 def get_direction(p0, p1):
 	if p0.real < p1.real:
 		return '>'
@@ -259,129 +219,158 @@ def get_next_dir_step(step, direction):
 		return KP_DIR[pos + 1j]
 	elif direction == '<':
 		return KP_DIR[pos - 1 + 0 * 1j]
-
-def to_cache(p):
-	return ''.join(p)
-
-def from_cache(p):
-	return list(p)
+	else:
+		print("FFAAAIIL", step, direction)
 
 #@functools.lru_cache()
-def press_dir_pad(kp_dir, level, button, cache):
+def press_dir_pad(kp_dir, level, button, code0, code1, cache):
 #	kp_dir = from_cache(kp_dir_str)
 #def press_dir_pad(kp_dir, kp_dir_steps, level, button, output, cache):
-	kp_dir_cache = ''.join(kp_dir)
+#	print(kp_dir)
+#	kp_dir_cache = ''.join(kp_dir)
 #	kp_dir_cache = kp_dir_cache[level:]
-	if (button, level, kp_dir_cache) in cache:
-		print("Cache for", button, level, kp_dir_cache)
-		return cache[(button, level, kp_dir_cache)]
+#	for i in range(24 - level):
+#		kp_dir_cache += 'A'
+	if (level, code0, code1) in cache:
+		print("Cache for", button, level, code0, code1)
+		return cache[(level, code0, code1)]
 
 #	print("Directional level", level, KP_DIR_VAL[kp_dir[level]], kp_dir[level], " -> ", button, KP_DIR_VAL[button])
 	num_pressed = 0
 
-	if level == 25:
-		print("PRESSING", button, kp_dir)
+	if level == 2:
+#		print("PRESSING", button, kp_dir)
 #		output.append(button)
 		return 1
 
+	prev_kp_dir = 'A'
 	if kp_dir[level] != button:
-#		_, dir_steps = kp_dir_steps[(kp_dir[level], button)]
-		
-#		directions = []
 		directions = list(KP_DIR_MAP[(kp_dir[level], button)])
-#		print("Directions for")
-#		print(kp_dir[level], button)
-#		print(directions)
 
-#		for dir_step in dir_steps:
-		for direction in directions:
-#			direction = get_direction(KP_DIR_VAL[kp_dir[level]], dir_step)
-#			kp_dir[level] = KP_DIR[dir_step]
-			kp_dir[level] = get_next_dir_step(kp_dir[level], direction)
-#			print("KP_DIR", kp_dir[level])
-#			directions.append(direction)
+		for i in range(len(directions)):
+			direction = directions[i]
+			#		for direction in directions:
+#			print("direction for level", level)
 #			print(direction)
-		
-#		for direction in sorted(directions):
-			num_pressed += press_dir_pad(kp_dir, level + 1, direction, cache)
+#			print("Before", kp_dir[level])
+			prev_kp_dir = 'A' if i == 0 else kp_dir[level]
+			kp_dir[level] = get_next_dir_step(kp_dir[level], direction)
+#			kp_dir[level] = direction #get_next_dir_step(kp_dir[level], direction)
+#			print("After", kp_dir[level])
+			num_pressed += press_dir_pad(kp_dir, level + 1, direction, prev_kp_dir, kp_dir[level], cache)
+#			num_pressed += press_dir_pad(kp_dir, level + 1, direction, kp_dir[level], direction, cache)
+#			prev_code = kp_dir[level]
 
-	num_pressed += press_dir_pad(kp_dir, level + 1, 'A', cache)
+	num_pressed += press_dir_pad(kp_dir, level + 1, 'A', prev_kp_dir, 'A', cache)
 
 #	kp_dir_cache = ''.join(kp_dir)
 #	kp_dir_cache = kp_dir_cache[level:]
-#	print("Cache", kp_dir_cache, "level", level)
-	cache[(button, level, kp_dir_cache)] = num_pressed
+	cache[(level, code0, code1)] = num_pressed
 
 	return num_pressed
 
+def traverse(level, max_level, key_src, key_dst, cache):
+	if (level, key_src, key_dst) in cache:
+		return cache[(level, key_src, key_dst)]
+
+	kp, kp_val = (KP_NUM, KP_NUM_VAL) if level == 0 else (KP_DIR, KP_DIR_VAL)
+	pos_src = kp_val[key_src]
+	pos_dst = kp_val[key_dst]
+	diff = pos_dst - pos_src
+	path = []
+
+	if level == max_level - 1:
+		return abs(int(diff.real)) + 1 + abs(int(diff.imag))
+
+	for _ in range(abs(int(diff.real))):
+		path.append('<' if diff.real < 0 else '>')
+
+	for _ in range(abs(int(diff.imag))):
+		path.append('^' if diff.imag < 0 else 'v')
+
+	if len(path) == 0:
+		return 1
+
+	results = []
+
+	for p in set(itertools.permutations(path)):
+		pos = pos_src
+		steps = 0
+
+		for i, direction in enumerate(p):
+			key_next = 'A' if i == 0 else p[i - 1]
+			
+			steps += traverse(level + 1, max_level, key_next, direction, cache)
+			pos += DIRECTIONS[direction]
+
+			if pos not in kp:
+				break
+		else:
+			steps += traverse(level + 1, max_level, p[-1], 'A', cache)
+			results.append(steps)
+
+	result = min(results)
+	cache[(level, key_src, key_dst)] = result
+
+	return result
+
+
+def solve(levels):
+	all_num_pressed = []
+	cache = {}
+
+	for codes in L:
+		num_pressed = traverse(0, levels, 'A', codes[0], cache)
+
+		for i in range(1, len(codes)):
+			num_pressed += traverse(0, levels, codes[i - 1], codes[i], cache)
+
+		all_num_pressed.append(num_pressed)
+
+	result = 0
+
+	for i in range(len(L)):
+		result += int("".join(L[i]).replace("A", "")) * all_num_pressed[i]
+
+	return result
+
 def solve_part1():
-	kp_num_steps = calculate_steps(KP_NUM)
-	kp_dir_steps = calculate_steps(KP_DIR)
-
-#	print(KP_DIR_MAP[('0', '7')])
-
-#	for k, v in kp_num_steps.items():
-#		_, b = v
-		
-#		print(k)
-#		for c in b:
-#			print(c)
-
-#	return []
-
-#	outputs = []
 	all_num_pressed = []
 	cache = {}
 
 	for codes in L:
 		kp_num = 'A'
 		kp_dir = ['A'] * 26
-#		output = []
 		num_pressed = 0
+		prev_code = kp_num
 		
-		for i, code in enumerate(codes):
-#			print("Numerical   ", KP_NUM_VAL[kp_num], kp_num, " -> ", code, KP_NUM_VAL[code])
-			print("Code", i, code)
-#			_, numeric_steps = kp_num_steps[(kp_num, code)]
+		for i in range(len(codes)):
+			code = codes[i]
+#			cache = {}
+
+			print("Codes", code)
+			if kp_num == code:
+				continue
+
 			directions = list(KP_DIR_MAP[(kp_num, code)])
+#			print(directions)
 
-#			directions = []
-
-#			for numeric_step in numeric_steps:
-			for direction in directions:
-#				print("NUMERIC STEP")
-#				direction = get_direction(KP_NUM_VAL[kp_num], numeric_step)
-#				kp_num = KP_NUM[numeric_step]
-#				print(direction)
-#				directions.append(direction)
+#			for direction in directions:
+			for i in range(len(directions)):
+				direction = directions[i]
+				prev_code = 'A' if i == 0 else codes[i - 1]
 				kp_num = get_next_num_step(kp_num, direction)
-				num_pressed_temp = press_dir_pad(kp_dir, 0, direction, cache)
+#				kp_num = direction #get_next_num_step(kp_num, direction)
+#				print("num pad", kp_dir, direction)
+				print("kp_num", kp_num)
+				num_pressed_temp = press_dir_pad(kp_dir, 0, direction, prev_code, code, cache)
 				num_pressed += num_pressed_temp
 
-				print("Direction", direction)
-				print(kp_dir)
-				print("num_pressed", num_pressed_temp)
-
-#			for direction in sorted(directions):
-#				press_dir_pad(kp_dir, kp_dir_steps, 0, direction, output)
-
-			num_pressed += press_dir_pad(kp_dir, 0, 'A', cache)
+			prev_code = code
+			print("FINAL", kp_dir)
+			num_pressed += press_dir_pad(kp_dir, 0, 'A', prev_code, 'A', cache)
 
 		all_num_pressed.append(num_pressed)
-#		outputs.append(output)
-
-#	print("RESULT")
-#	a = [
-#			"<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A",
-#			"<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A",
-#			"<v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A",
-#			"<v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A",
-#			"<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A"]
-
-#	for i in range(len(result)):
-#		print("Got num", len(result[i]), "expected", len(a[i]))
-#		print("Got string:      " + "".join(result[i]))
-#		print("Expected string: " + a[i])
 
 	result = 0
 
@@ -390,24 +379,7 @@ def solve_part1():
 
 	return result
 
+#print(solve_part1())
 
-#	print(code)
-#	print(kp_num_steps[('7', '8')])
-#	print(kp_dir_steps)
-
-#	print("DIR TEST")
-#	print("RIGHT", get_direction(1 + 1 * 1j, 2 + 1 * 1j))
-#	print("DOWN", get_direction(1 + 1 * 1j, 1 + 2 * 1j))
-#	print("LEFT", get_direction(2 + 1 * 1j, 1 + 1 * 1j))
-#	print("UP", get_direction(1 + 1 * 1j, 1 + -1 * 1j))
-
-#	min_steps, path = get_steps(KP_NUM, 0 + 2 + 3 * 1j, 0 + 0 * 1j)
-#	print("min_steps", min_steps)
-#	print("path", path)
-
-print(solve_part1())
-
-#t_str = "1234"
-#level = 1
-#print(t_str[level:])
-#kp_dir_cache = kp_dir_cache[:level]
+print(solve(3))
+print(solve(26))
